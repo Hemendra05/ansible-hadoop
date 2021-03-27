@@ -1,0 +1,57 @@
+---
+# tasks file for hadoop_master
+
+  - name: "Copying Hadoop File"
+    copy:
+           dest: /root/
+           src: hadoop-1.2.1-1.x86_64.rpm
+
+  - name: "Copying Java JDK File"
+    copy:
+            dest: /root/
+            src: jdk-8u171-linux-x64.rpm
+
+  - name: "Checking Hadoop is install or not"
+    stat:
+            path: "/etc/hadoop/hadoop-env.sh"
+    register: hadoop_check
+    ignore_errors: yes
+
+  - name: "Installing Java"
+    shell: "rpm -ivh /root/jdk-8u171-linux-x64.rpm"
+    when: not hadoop_check.stat.exists
+    run_once: yes
+
+  - name: "Installing Hadoop"
+    shell: "rpm -ivh /root/hadoop-1.2.1-1.x86_64.rpm --force"
+    when: not hadoop_check.stat.exists
+    run_once: yes
+
+  - name: "Creating Directory For Hadoop"
+    file:
+            path: "/root/{{ folder }}"
+            state: directory
+    register: dir
+
+  - name: "Configuring hdfs-site.xml File"
+    template:
+            dest: /etc/hadoop/hdfs-site.xml
+            src: hdfs-site.xml
+
+  - name: "Configuring core-site.xml File"
+    template:
+            dest: /etc/hadoop/core-site.xml
+            src: core-site.xml
+
+  - name: "Formatting NameNode Directory"
+    shell: "echo Y  |  hadoop  namenode  -format"
+    ignore_errors: yes
+    when: dir.changed == true
+  
+  - name: "Stopping Hadoop Nmaenode"
+    shell: "hadoop-daemon.sh stop  namenode"
+
+  - name: "Stating Hadoop NameNode"
+    shell: "hadoop-daemon.sh start namenode"
+
+

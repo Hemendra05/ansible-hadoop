@@ -1,0 +1,7 @@
+- hosts: masterNode
+  roles:
+          - role: hadoop_master
+
+- hosts: workerNode
+  roles:
+          - role: hadoop_worker
